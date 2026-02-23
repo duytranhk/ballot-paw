@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/ballot-paw/dev-sw.js?dev-sw', { scope: '/ballot-paw/', type: 'classic' })
