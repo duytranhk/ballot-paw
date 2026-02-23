@@ -31,7 +31,7 @@ export default function Report({ go }: { go: (screen: 'setup' | 'count' | 'repor
         }}
         className='mt-6 w-full h-16 bg-blue-600 text-white text-xl font-bold rounded-xl'
       >
-        KIỂM PHIẾU MỚI
+        PHIÊN KIỂM PHIẾU MỚI
       </button>
     </div>
   );
