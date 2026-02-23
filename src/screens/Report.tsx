@@ -14,9 +14,11 @@ export default function Report({ go }: { go: (screen: 'setup' | 'count' | 'repor
       </div>
 
       <div className='bg-white rounded-xl shadow divide-y'>
-        {state.candidates.map((c: any) => (
+        {state.candidates.map((c: any, index: number) => (
           <div key={c.id} className='flex justify-between px-4 py-4 text-lg'>
-            <span>{c.name}</span>
+            <span>
+              {index + 1}: {c.name}
+            </span>
             <b>{state.votes[c.id]}</b>
           </div>
         ))}
@@ -25,11 +27,14 @@ export default function Report({ go }: { go: (screen: 'setup' | 'count' | 'repor
       <button
         onClick={() => {
           if (confirm('Bạn có chắc chắn muốn bắt đầu kiểm phiếu mới?')) {
+            if (navigator?.vibrate) {
+              navigator.vibrate(20);
+            }
             dispatch({ type: 'RESET' });
             go('setup');
           }
         }}
-        className='mt-6 w-full h-16 bg-blue-600 text-white text-xl font-bold rounded-xl'
+        className='mt-6 w-full h-16 bg-blue-600 text-white text-xl font-bold rounded-xl active:scale-98 transition-all duration-100 active:bg-blue-700'
       >
         PHIÊN KIỂM PHIẾU MỚI
       </button>

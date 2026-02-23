@@ -37,7 +37,11 @@ function reducer(state: State, action: { type: string; payload?: any }): State {
       };
     }
     case 'RESET':
-      return initialState;
+      return {
+        ...state,
+        votes: Object.fromEntries(state.candidates.map((c) => [c.id, 0])),
+        ballotCount: 0,
+      };
     default:
       return state;
   }
