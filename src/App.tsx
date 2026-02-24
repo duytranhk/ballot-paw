@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
+import type { HistoryRecord, NavState } from './types';
 import Setup from './screens/Setup';
 import Counting from './screens/Counting';
 import Report from './screens/Report';
@@ -7,23 +7,22 @@ import History from './screens/History';
 import HistoryDetail from './screens/HistoryDetail';
 
 export default function App() {
-  const [screen, setScreen] = useState('setup');
-  const [record, setRecord] = useState<any>(null);
-  let ScreenComponent = null;
-  if (screen === 'setup') ScreenComponent = <Setup go={setScreen} />;
-  if (screen === 'count') ScreenComponent = <Counting go={setScreen} />;
-  if (screen === 'report') ScreenComponent = <Report go={setScreen} />;
-  if (screen === 'history')
-    ScreenComponent = (
-      <History
-        go={setScreen}
-        open={(r: any) => {
-          setRecord(r);
-          setScreen('detail');
-        }}
-      />
-    );
-  if (screen === 'detail') ScreenComponent = <HistoryDetail record={record} go={setScreen} />;
-  return ScreenComponent;
+  const [nav, setNav] = useState<NavState>({ screen: 'setup' });
+
+  const navigate = (screen: NavState['screen']) => setNav({ screen } as NavState);
+  const openRecord = (record: HistoryRecord) => setNav({ screen: 'history-detail', record });
+
+  switch (nav.screen) {
+    case 'setup':
+      return <Setup navigate={navigate} />;
+    case 'count':
+      return <Counting navigate={navigate} />;
+    case 'report':
+      return <Report navigate={navigate} />;
+    case 'history':
+      return <History navigate={navigate} onOpenRecord={openRecord} />;
+    case 'history-detail':
+      return <HistoryDetail record={nav.record} navigate={navigate} />;
+  }
 }
 

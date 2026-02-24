@@ -1,5 +1,10 @@
 import { createContext } from 'react';
+import type { BallotAction, BallotState } from '../types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const BallotContext = createContext<any>(null);
+export type BallotContextValue = {
+  state: BallotState;
+  dispatch: React.Dispatch<BallotAction>;
+};
+
+export const BallotContext = createContext<BallotContextValue | null>(null);
 

@@ -1,35 +1,81 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useContext } from 'react';
-import { BallotContext } from '../context/BallotContext';
+import { useState } from 'react';
+import { useBallot } from '../hooks/useBallot';
+import ScreenLayout from '../components/ScreenLayout';
+import ConfirmModal from '../components/ConfirmModal';
+import type { HistoryRecord, Screen } from '../types';
 
-export default function History({ go, open }: { go: (screen: 'setup' | 'count' | 'report') => void; open: (record: any) => void }) {
-  const { state } = useContext(BallotContext);
+type Props = {
+  navigate: (screen: Screen) => void;
+  onOpenRecord: (record: HistoryRecord) => void;
+};
+
+export default function History({ navigate, onOpenRecord }: Props) {
+  const { state, dispatch } = useBallot();
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  function handleDeleteConfirm() {
+    if (pendingDeleteId) {
+      dispatch({ type: 'DELETE_HISTORY', payload: pendingDeleteId });
+    }
+    setPendingDeleteId(null);
+  }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 flex flex-col bg-gray-100'>
+    <ScreenLayout>
       <h2 className='text-2xl font-bold text-center mb-4'>LỊCH SỬ KIỂM PHIẾU</h2>
 
-      {!state.history?.length && <div className='text-center text-gray-500'>Chưa có dữ liệu kiểm phiếu</div>}
+      {!state.history.length && <div className='text-center text-gray-500'>Chưa có dữ liệu kiểm phiếu</div>}
 
-      <div className='space-y-3'>
-        {state.history?.map((h: any, i: number) => (
-          <button key={h.id} onClick={() => open(h)} className='w-full p-4 bg-white rounded-xl shadow flex justify-between items-center active:scale-95 transition'>
-            <div className='text-left'>
-              <div className='font-bold'>Lần kiểm phiếu #{state.history.length - i}</div>
-              <div className='text-sm text-gray-600'>{new Date(h.time).toLocaleString('vi-VN')}</div>
-            </div>
-            <div className='text-lg font-bold'>{h.ballotCount} phiếu</div>
-          </button>
+      <div className='flex-1 space-y-3 overflow-y-auto'>
+        {state.history.map((h, i) => (
+          <div key={h.id} className='w-full bg-white rounded-xl shadow flex items-center'>
+            <button onClick={() => onOpenRecord(h)} className='flex-1 p-4 flex justify-between items-center active:scale-95 transition text-left'>
+              <div>
+                <div className='font-bold'>Lần kiểm phiếu #{state.history.length - i}</div>
+                <div className='text-sm text-gray-600'>{new Date(h.time).toLocaleString('vi-VN')}</div>
+              </div>
+              <div className='text-lg font-bold'>{h.ballotCount} phiếu</div>
+            </button>
+            <button onClick={() => setPendingDeleteId(h.id)} className='px-4 py-4 text-red-500 active:text-red-700 active:scale-95 transition-all duration-100' aria-label='Xoá'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='w-5 h-5'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth={2}
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
+                <polyline points='3 6 5 6 21 6' />
+                <path d='M19 6l-1 14H6L5 6' />
+                <path d='M10 11v6' />
+                <path d='M14 11v6' />
+                <path d='M9 6V4h6v2' />
+              </svg>
+            </button>
+          </div>
         ))}
       </div>
 
       <button
-        onClick={() => go('setup')}
+        onClick={() => navigate('setup')}
         className='mt-6 w-full h-14 bg-gray-600 text-white text-lg font-bold rounded-xl active:scale-95 transition-all duration-100 active:bg-gray-700'
       >
         QUAY LẠI
       </button>
-    </div>
+
+      {pendingDeleteId && (
+        <ConfirmModal
+          message='Xoá lịch sử kiểm phiếu?'
+          description='Hành động này không thể hoàn tác.'
+          confirmLabel='Xoá'
+          cancelLabel='Huỷ'
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setPendingDeleteId(null)}
+        />
+      )}
+    </ScreenLayout>
   );
 }
 

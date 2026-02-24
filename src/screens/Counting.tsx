@@ -1,79 +1,129 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useContext, useState } from 'react';
-import { BallotContext } from '../context/BallotContext';
+import { useState } from 'react';
+import { useBallot } from '../hooks/useBallot';
+import { useErrorBanner } from '../hooks/useErrorBanner';
+import { vibrate } from '../utils/haptics';
+import ScreenLayout from '../components/ScreenLayout';
+import ErrorBanner from '../components/ErrorBanner';
+import ConfirmModal from '../components/ConfirmModal';
+import IndexBadge from '../components/IndexBadge';
+import type { Screen } from '../types';
 
-export default function Counting({ go }: { go: (screen: 'setup' | 'count' | 'report') => void }) {
-  const { state, dispatch } = useContext(BallotContext);
+type Props = { navigate: (screen: Screen) => void };
+
+export default function Counting({ navigate }: Props) {
+  const { state, dispatch } = useBallot();
   const [disapproved, setDisapproved] = useState<string[]>([]);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [ballotKey, setBallotKey] = useState(0);
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('left');
+  const { errorMsg, showError } = useErrorBanner();
+
+  const hasPrevious = state.ballotCount > 0;
 
   function toggle(id: string) {
-    setDisapproved((d) => (d.includes(id) ? d.filter((x) => x !== id) : [...d, id]));
+    setDisapproved((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  function countBallot() {
+  function validateDisapproved(): boolean {
     if (disapproved.length === 0) {
-      const proceed = confirm('Bạn chưa loại ứng viên nào. Bạn có chắc chắn muốn tiếp tục?');
-      if (!proceed) return false;
+      showError(`Phiếu bầu số ${state.ballotCount + 1} không hợp lệ — vui lòng loại ít nhất 1 ứng viên.`);
+      return false;
     }
-
-    const approved = state.candidates.filter((c: any) => !disapproved.includes(c.id)).map((c: any) => c.id);
-    dispatch({ type: 'COUNT_BALLOT', payload: approved });
-    setDisapproved([]);
     return true;
   }
 
-  function next() {
-    if (navigator?.vibrate) {
-      navigator.vibrate(20);
-    }
-    countBallot();
+  function countBallot() {
+    const approved = state.candidates.filter((c) => !disapproved.includes(c.id)).map((c) => c.id);
+    dispatch({ type: 'COUNT_BALLOT', payload: approved });
     setDisapproved([]);
   }
 
-  function finish() {
-    if (navigator?.vibrate) {
-      navigator.vibrate(20);
-    }
+  function previous() {
+    vibrate();
+    const lastApproved = state.ballotLog[state.ballotLog.length - 1];
+    const restored = state.candidates.filter((c) => !lastApproved.includes(c.id)).map((c) => c.id);
+    setSlideDir('right');
+    setBallotKey((k) => k + 1);
+    dispatch({ type: 'UNDO_BALLOT' });
+    setDisapproved(restored);
+  }
 
-    if (confirm('Bạn có chắc chắn muốn kết thúc kiểm phiếu?')) {
-      if (!countBallot()) return;
-      dispatch({ type: 'SAVE_HISTORY' });
-      go('report');
-    }
+  function next() {
+    vibrate();
+    if (!validateDisapproved()) return;
+    setSlideDir('left');
+    setBallotKey((k) => k + 1);
+    countBallot();
+  }
+
+  function finish() {
+    vibrate();
+    setShowFinishConfirm(true);
+  }
+
+  function handleFinishConfirm() {
+    setShowFinishConfirm(false);
+    setSlideDir('left');
+    setBallotKey((k) => k + 1);
+    countBallot();
+    dispatch({ type: 'SAVE_HISTORY' });
+    navigate('report');
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 flex flex-col bg-gray-100'>
+    <ScreenLayout>
+      {showFinishConfirm && (
+        <ConfirmModal
+          message={disapproved.length === 0 ? `Phiếu bầu số ${state.ballotCount + 1} chưa được kiểm. Tiếp tục kết thúc?` : 'Kết thúc kiểm phiếu?'}
+          description={disapproved.length === 0 ? 'Phiếu chưa kiểm sẽ không được tính vào kết quả.' : 'Hành động này sẽ lưu kết quả và không thể hoàn tác.'}
+          confirmLabel='Kết thúc'
+          onConfirm={handleFinishConfirm}
+          onCancel={() => setShowFinishConfirm(false)}
+        />
+      )}
+
       <div className='bg-blue-600 text-white p-4 text-xl text-center font-bold'>Phiếu bầu số {state.ballotCount + 1}</div>
 
       <div className='text-center text-lg py-2'>
         Chạm để <b className='text-red-600'>LOẠI</b> ứng viên
       </div>
 
-      <div className='flex-1 overflow-y-auto p-3 space-y-3'>
-        {state.candidates.map((c: any, index: number) => (
+      <ErrorBanner message={errorMsg} />
+
+      <div key={ballotKey} className={`flex-1 overflow-y-auto p-3 space-y-3 ${slideDir === 'left' ? 'animate-slide-from-right' : 'animate-slide-from-left'}`}>
+        {state.candidates.map((c, index) => (
           <button
             key={c.id}
             onClick={() => toggle(c.id)}
             className={`w-full h-16 rounded-xl flex items-center justify-between px-4 text-lg font-semibold border active:scale-95 transition-all duration-100
               ${disapproved.includes(c.id) ? 'bg-red-100 border-red-400 text-red-700' : 'bg-green-100 border-green-400 text-green-800'}`}
           >
-            <span>{`${index + 1}: ${c.name}`}</span>
+            <span className='flex items-center gap-3'>
+              <IndexBadge index={index + 1} />
+              {c.name}
+            </span>
             <span className='text-2xl'>{disapproved.includes(c.id) ? '❌' : '✔'}</span>
           </button>
         ))}
       </div>
 
       <div className='p-3 space-y-3'>
-        <button onClick={next} className='w-full h-16 bg-green-600 text-white text-xl font-bold rounded-xl active:scale-95 active:bg-green-700 transition-all duration-100'>
-          LƯU VÀ TIẾP TỤC
-        </button>
+        <div className='flex gap-3'>
+          {hasPrevious && (
+            <button onClick={previous} className='flex-1 h-14 bg-gray-500 text-white text-md font-bold rounded-xl active:scale-95 active:bg-gray-600 transition-all duration-100'>
+              ◀ PHIẾU TRƯỚC
+            </button>
+          )}
+          <button onClick={next} className='flex-1 h-14 bg-green-600 text-white text-md font-bold rounded-xl active:scale-95 active:bg-green-700 transition-all duration-100'>
+            PHIẾU KẾ TIẾP ▶
+          </button>
+        </div>
 
         <button onClick={finish} className='w-full h-14 bg-yellow-500 text-white text-lg font-bold rounded-xl active:scale-95 active:bg-yellow-600 transition-all duration-100'>
           KẾT THÚC KIỂM PHIẾU
         </button>
       </div>
-    </div>
+    </ScreenLayout>
   );
 }
 

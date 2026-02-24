@@ -1,52 +1,62 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useContext } from 'react';
-import { BallotContext } from '../context/BallotContext';
+import { useState } from 'react';
+import { useBallot } from '../hooks/useBallot';
+import { vibrate } from '../utils/haptics';
+import { buildResultText, shareResult } from '../utils/share';
+import ScreenLayout from '../components/ScreenLayout';
+import VoteResultList from '../components/VoteResultList';
+import ConfirmModal from '../components/ConfirmModal';
+import type { Screen } from '../types';
 
-export default function Report({ go }: { go: (screen: 'setup' | 'count' | 'report') => void }) {
-  const { state, dispatch } = useContext(BallotContext);
+type Props = { navigate: (screen: Screen) => void };
+
+export default function Report({ navigate }: Props) {
+  const { state, dispatch } = useBallot();
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  function handleConfirm() {
+    setShowConfirm(false);
+    vibrate();
+    dispatch({ type: 'RESET' });
+    navigate('setup');
+  }
+
+  function handleShare() {
+    const text = buildResultText({
+      title: 'KẾT QUẢ CUỐI CÙNG',
+      candidates: state.candidates,
+      votes: state.votes,
+      ballotCount: state.ballotCount,
+    });
+    shareResult(text);
+  }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 flex flex-col bg-gray-100'>
+    <ScreenLayout>
+      {showConfirm && <ConfirmModal message='Bạn muốn bắt đầu phiên kiểm phiếu mới?' onConfirm={handleConfirm} onCancel={() => setShowConfirm(false)} />}
+
       <h2 className='text-2xl font-bold text-center mb-2'>KẾT QUẢ CUỐI CÙNG</h2>
 
       <div className='text-center text-lg mb-4'>
         Tổng số phiếu: <b>{state.ballotCount}</b>
       </div>
-
-      <div className=''>
-        {state.candidates.map((c: any, index: number) => (
-          <div key={c.id} className='bg-white shadow rounded-xl px-4 py-4 text-lg mt-3'>
-            <div className='flex justify-between items-center mb-2'>
-              <span>
-                {index + 1}: {c.name}
-              </span>
-              <span className='text-sm text-gray-500'>{state.votes[c.id] ?? 0} Phiếu</span>
-            </div>
-            <div className='w-full bg-gray-200 rounded-full h-3'>
-              <div
-                className='bg-green-500 h-4 rounded-full transition-all duration-300'
-                style={{ width: `${state.ballotCount ? ((state.votes[c.id] ?? 0) / state.ballotCount) * 100 : 0}%` }}
-              ></div>
-            </div>
-          </div>
-        ))}
+      <div className='flex-1 space-y-3 overflow-y-auto'>
+        <VoteResultList candidates={state.candidates} votes={state.votes} ballotCount={state.ballotCount} />
       </div>
 
       <button
-        onClick={() => {
-          if (confirm('Bạn có chắc chắn muốn bắt đầu kiểm phiếu mới?')) {
-            if (navigator?.vibrate) {
-              navigator.vibrate(20);
-            }
-            dispatch({ type: 'RESET' });
-            go('setup');
-          }
-        }}
-        className='mt-6 w-full h-16 bg-blue-600 text-white text-xl font-bold rounded-xl active:scale-95 transition-all duration-100 active:bg-blue-700'
+        onClick={handleShare}
+        className='mt-6 w-full h-14 bg-green-600 text-white text-lg font-bold rounded-xl active:scale-95 transition-all duration-100 active:bg-green-700'
+      >
+        CHIA SẺ KẾT QUẢ
+      </button>
+
+      <button
+        onClick={() => setShowConfirm(true)}
+        className='mt-2 w-full h-13 bg-blue-600 text-white text-xl font-bold rounded-xl active:scale-95 transition-all duration-100 active:bg-blue-700'
       >
         PHIÊN KIỂM PHIẾU MỚI
       </button>
-    </div>
+    </ScreenLayout>
   );
 }
 

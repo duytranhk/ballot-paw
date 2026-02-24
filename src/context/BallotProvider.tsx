@@ -1,49 +1,58 @@
 import React, { useEffect, useReducer } from 'react';
 import { BallotContext } from './BallotContext';
+import type { BallotAction, BallotState } from '../types';
 
-type Candidate = { id: string; name: string };
-
-type State = {
-  candidates: Candidate[];
-  votes: Record<string, number>;
-  ballotCount: number;
-  history: HistoryRecord[];
-};
-
-type HistoryRecord = {
-  id: string;
-  time: number;
-  candidates: Candidate[];
-  votes: Record<string, number>;
-  ballotCount: number;
-};
-
-const initialState: State = {
+const initialState: BallotState = {
   candidates: [],
   votes: {},
   ballotCount: 0,
+  ballotLog: [],
   history: [],
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function reducer(state: State, action: { type: string; payload?: any }): State {
+function loadPersistedState(): BallotState {
+  try {
+    const saved = localStorage.getItem('ballot');
+    return saved ? (JSON.parse(saved) as BallotState) : initialState;
+  } catch {
+    return initialState;
+  }
+}
+
+function reducer(state: BallotState, action: BallotAction): BallotState {
   switch (action.type) {
     case 'SET_CANDIDATES':
       return {
         ...state,
         candidates: action.payload,
-        votes: Object.fromEntries(action.payload.map((c: Candidate) => [c.id, 0])),
+        votes: Object.fromEntries(action.payload.map((c) => [c.id, 0])),
         ballotCount: 0,
+        ballotLog: [],
       };
     case 'COUNT_BALLOT': {
       const updated = { ...state.votes };
-      action.payload.forEach((candidateId: string) => {
-        updated[candidateId] = (updated[candidateId] || 0) + 1;
+      action.payload.forEach((candidateId) => {
+        updated[candidateId] = (updated[candidateId] ?? 0) + 1;
       });
       return {
         ...state,
         votes: updated,
         ballotCount: state.ballotCount + 1,
+        ballotLog: [...state.ballotLog, action.payload],
+      };
+    }
+    case 'UNDO_BALLOT': {
+      const lastApproved = state.ballotLog[state.ballotLog.length - 1];
+      if (!lastApproved) return state;
+      const updated = { ...state.votes };
+      lastApproved.forEach((candidateId) => {
+        updated[candidateId] = Math.max(0, (updated[candidateId] ?? 0) - 1);
+      });
+      return {
+        ...state,
+        votes: updated,
+        ballotCount: state.ballotCount - 1,
+        ballotLog: state.ballotLog.slice(0, -1),
       };
     }
     case 'SAVE_HISTORY':
@@ -57,14 +66,20 @@ function reducer(state: State, action: { type: string; payload?: any }): State {
             votes: state.votes,
             ballotCount: state.ballotCount,
           },
-          ...(state.history || []),
+          ...state.history,
         ],
+      };
+    case 'DELETE_HISTORY':
+      return {
+        ...state,
+        history: state.history.filter((h) => h.id !== action.payload),
       };
     case 'RESET':
       return {
         ...state,
         votes: Object.fromEntries(state.candidates.map((c) => [c.id, 0])),
         ballotCount: 0,
+        ballotLog: [],
       };
     default:
       return state;
@@ -72,11 +87,9 @@ function reducer(state: State, action: { type: string; payload?: any }): State {
 }
 
 export function BallotProvider({ children }: { children: React.ReactNode }) {
-  const saved = localStorage.getItem('ballot');
-  const [state, dispatch] = useReducer(reducer, saved ? JSON.parse(saved) : initialState);
+  const [state, dispatch] = useReducer(reducer, undefined, loadPersistedState);
 
   useEffect(() => {
-    console.log(state);
     localStorage.setItem('ballot', JSON.stringify(state));
   }, [state]);
 

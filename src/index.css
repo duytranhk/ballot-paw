@@ -3,3 +3,18 @@
 html, body, #root {
   height: 100%;
 }
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(60%); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-60%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@theme {
+  --animate-slide-from-right: slide-in-from-right 0.25s ease-out;
+  --animate-slide-from-left:  slide-in-from-left  0.25s ease-out;
+}
