@@ -7,12 +7,22 @@ type State = {
   candidates: Candidate[];
   votes: Record<string, number>;
   ballotCount: number;
+  history: HistoryRecord[];
+};
+
+type HistoryRecord = {
+  id: string;
+  time: number;
+  candidates: Candidate[];
+  votes: Record<string, number>;
+  ballotCount: number;
 };
 
 const initialState: State = {
   candidates: [],
   votes: {},
   ballotCount: 0,
+  history: [],
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +46,20 @@ function reducer(state: State, action: { type: string; payload?: any }): State {
         ballotCount: state.ballotCount + 1,
       };
     }
+    case 'SAVE_HISTORY':
+      return {
+        ...state,
+        history: [
+          {
+            id: crypto.randomUUID(),
+            time: Date.now(),
+            candidates: state.candidates,
+            votes: state.votes,
+            ballotCount: state.ballotCount,
+          },
+          ...(state.history || []),
+        ],
+      };
     case 'RESET':
       return {
         ...state,
@@ -52,6 +76,7 @@ export function BallotProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, saved ? JSON.parse(saved) : initialState);
 
   useEffect(() => {
+    console.log(state);
     localStorage.setItem('ballot', JSON.stringify(state));
   }, [state]);
 
