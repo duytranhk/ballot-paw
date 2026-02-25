@@ -5,6 +5,7 @@ import Counting from './screens/Counting';
 import Report from './screens/Report';
 import History from './screens/History';
 import HistoryDetail from './screens/HistoryDetail';
+import Guide from './screens/Guide';
 
 export default function App() {
   const [nav, setNav] = useState<NavState>({ screen: 'setup' });
@@ -23,6 +24,8 @@ export default function App() {
       return <History navigate={navigate} onOpenRecord={openRecord} />;
     case 'history-detail':
       return <HistoryDetail record={nav.record} navigate={navigate} />;
+    case 'guide':
+      return <Guide navigate={navigate} />;
   }
 }
 

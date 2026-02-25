@@ -40,8 +40,10 @@ export default function Setup({ navigate }: Props) {
   return (
     <ScreenLayout>
       <h1 className='text-2xl font-bold text-center mb-1'>ĐẾM PHIẾU BẦU</h1>
-      <p className='text-sm text-gray-400 italic text-center mb-4'>Khu Phố An Bình 2 - Phường Long An</p>
-
+      <p className='text-sm text-gray-400 italic text-center mb-1'>Khu Phố An Bình 2 - Phường Long An</p>
+      <button onClick={() => navigate('guide')} className='h-10 text-blue-500 text-sm underline underline-offset-2 mb-4'>
+        Hướng dẫn sử dụng
+      </button>
       <ErrorBanner message={errorMsg} />
 
       <div className='flex gap-2 mb-4'>

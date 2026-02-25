@@ -1,4 +1,4 @@
-export type Screen = 'setup' | 'count' | 'report' | 'history' | 'history-detail';
+export type Screen = 'setup' | 'count' | 'report' | 'history' | 'history-detail' | 'guide';
 
 export type Candidate = {
   id: string;

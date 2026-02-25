@@ -23,6 +23,7 @@ export default function Report({ navigate }: Props) {
   function handleShare() {
     const text = buildResultText({
       title: 'KẾT QUẢ CUỐI CÙNG',
+      time: Date.now(),
       candidates: state.candidates,
       votes: state.votes,
       ballotCount: state.ballotCount,

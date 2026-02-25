@@ -1,12 +1,12 @@
 import { useState } from 'react';
+import ConfirmModal from '../components/ConfirmModal';
+import ErrorBanner from '../components/ErrorBanner';
+import IndexBadge from '../components/IndexBadge';
+import ScreenLayout from '../components/ScreenLayout';
 import { useBallot } from '../hooks/useBallot';
 import { useErrorBanner } from '../hooks/useErrorBanner';
-import { vibrate } from '../utils/haptics';
-import ScreenLayout from '../components/ScreenLayout';
-import ErrorBanner from '../components/ErrorBanner';
-import ConfirmModal from '../components/ConfirmModal';
-import IndexBadge from '../components/IndexBadge';
 import type { Screen } from '../types';
+import { vibrate } from '../utils/haptics';
 
 type Props = { navigate: (screen: Screen) => void };
 
@@ -63,9 +63,11 @@ export default function Counting({ navigate }: Props) {
 
   function handleFinishConfirm() {
     setShowFinishConfirm(false);
-    setSlideDir('left');
-    setBallotKey((k) => k + 1);
-    countBallot();
+    if (disapproved.length > 0) {
+      setSlideDir('left');
+      setBallotKey((k) => k + 1);
+      countBallot();
+    }
     dispatch({ type: 'SAVE_HISTORY' });
     navigate('report');
   }
