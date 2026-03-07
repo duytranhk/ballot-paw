@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef } from "react";
 
 export function useErrorBanner(durationMs = 3000) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);

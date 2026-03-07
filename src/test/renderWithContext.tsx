@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { render } from '@testing-library/react';
-import { type ReactNode, useEffect, useReducer } from 'react';
-import { BallotContext } from '../context/BallotContext';
-import type { BallotAction, BallotState } from '../types';
+import { render } from "@testing-library/react";
+import { type ReactNode, useEffect, useReducer } from "react";
+import { BallotContext } from "../context/BallotContext";
+import type { BallotAction, BallotState } from "../types";
 
 const defaultState: BallotState = {
   candidates: [],
@@ -14,7 +14,7 @@ const defaultState: BallotState = {
 
 function reducer(state: BallotState, action: BallotAction): BallotState {
   switch (action.type) {
-    case 'SET_CANDIDATES':
+    case "SET_CANDIDATES":
       return {
         ...state,
         candidates: action.payload,
@@ -22,7 +22,7 @@ function reducer(state: BallotState, action: BallotAction): BallotState {
         ballotCount: 0,
         ballotLog: [],
       };
-    case 'COUNT_BALLOT': {
+    case "COUNT_BALLOT": {
       const updated = { ...state.votes };
       action.payload.forEach((id) => {
         updated[id] = (updated[id] ?? 0) + 1;
@@ -34,7 +34,7 @@ function reducer(state: BallotState, action: BallotAction): BallotState {
         ballotLog: [...state.ballotLog, action.payload],
       };
     }
-    case 'UNDO_BALLOT': {
+    case "UNDO_BALLOT": {
       const last = state.ballotLog[state.ballotLog.length - 1];
       if (!last) return state;
       const updated = { ...state.votes };
@@ -48,7 +48,7 @@ function reducer(state: BallotState, action: BallotAction): BallotState {
         ballotLog: state.ballotLog.slice(0, -1),
       };
     }
-    case 'SAVE_HISTORY':
+    case "SAVE_HISTORY":
       return {
         ...state,
         history: [
@@ -62,12 +62,12 @@ function reducer(state: BallotState, action: BallotAction): BallotState {
           ...state.history,
         ],
       };
-    case 'DELETE_HISTORY':
+    case "DELETE_HISTORY":
       return {
         ...state,
         history: state.history.filter((h) => h.id !== action.payload),
       };
-    case 'RESET':
+    case "RESET":
       return {
         ...state,
         votes: Object.fromEntries(state.candidates.map((c) => [c.id, 0])),
@@ -79,7 +79,13 @@ function reducer(state: BallotState, action: BallotAction): BallotState {
   }
 }
 
-function TestProvider({ children, initialState }: { children: ReactNode; initialState: BallotState }) {
+function TestProvider({
+  children,
+  initialState,
+}: {
+  children: ReactNode;
+  initialState: BallotState;
+}) {
   const [state, dispatch] = useReducer(reducer, initialState);
   // suppress localStorage side-effects in tests
   useEffect(() => {}, [state]);
@@ -90,4 +96,3 @@ export function renderWithContext(ui: ReactNode, initialState: Partial<BallotSta
   const state: BallotState = { ...defaultState, ...initialState };
   return render(<TestProvider initialState={state}>{ui}</TestProvider>);
 }
-

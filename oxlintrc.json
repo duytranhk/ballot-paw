@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "no-unused-vars": "error",
+    "no-undef": "error",
+    "no-redeclare": "error",
+    "no-console": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "ignores": ["dist/**", "node_modules/**", "*.config.js", "*.config.ts", "vite.config.ts"]
+}

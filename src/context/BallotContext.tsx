@@ -1,5 +1,5 @@
-import { createContext } from 'react';
-import type { BallotAction, BallotState } from '../types';
+import { createContext } from "react";
+import type { BallotAction, BallotState } from "../types";
 
 export type BallotContextValue = {
   state: BallotState;
@@ -7,4 +7,3 @@ export type BallotContextValue = {
 };
 
 export const BallotContext = createContext<BallotContextValue | null>(null);
-
