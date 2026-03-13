@@ -71,19 +71,21 @@ export default function Guide({ navigate }: Props) {
             tại.
           </Step>
           <Step num={2}>
-            Mặc định, tất cả ứng viên được đánh dấu <b className="text-green-700">✔ (được bầu)</b>.
+            Mặc định, tất cả ứng viên ở trạng thái{" "}
+            <b className="text-red-600">❌ (chưa được chọn)</b>.
           </Step>
           <Step num={3}>
-            Chạm vào tên ứng viên bị <b className="text-red-600">LOẠI</b> (gạch chân đỏ trên phiếu
-            bầu thực tế) để chuyển sang trạng thái <b className="text-red-600">❌ (bị loại)</b>.
+            Chạm vào tên ứng viên <b className="text-green-700">được bầu</b> (không bị gạch chân
+            trên phiếu bầu thực tế) để chuyển sang trạng thái{" "}
+            <b className="text-green-700">✔ (được chọn)</b>. Ứng viên không được chọn sẽ bị loại.
           </Step>
-          <Step num={4}>Chạm lại lần nữa để đổi lại thành ✔ nếu nhỡ tay.</Step>
+          <Step num={4}>Chạm lại lần nữa để bỏ chọn nếu nhỡ tay.</Step>
           <Step num={5}>
             Sau khi kiểm xong phiếu, nhấn <b>PHIẾU KẾ TIẾP ▶</b> để lưu và chuyển sang phiếu tiếp
             theo.
           </Step>
           <Note>
-            Mỗi phiếu bầu bắt buộc phải loại ít nhất 1 ứng viên. Nếu chưa loại ai, ứng dụng sẽ báo
+            Mỗi phiếu bầu bắt buộc phải chọn ít nhất 1 ứng viên. Nếu chưa chọn ai, ứng dụng sẽ báo
             lỗi.
           </Note>
         </Section>

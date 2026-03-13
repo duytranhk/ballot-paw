@@ -55,7 +55,7 @@ export interface ShareParams extends BaseEventParams {
 }
 
 export interface ErrorParams extends BaseEventParams {
-  error_type: "validation" | "no_candidates" | "no_eliminations" | "storage_error";
+  error_type: "validation" | "no_candidates" | "no_approvals" | "storage_error";
   error_message: string;
   screen: string;
 }

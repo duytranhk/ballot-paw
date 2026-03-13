@@ -190,7 +190,7 @@ export function useAnalytics() {
    */
   const trackError = useCallback(
     (
-      errorType: "validation" | "no_candidates" | "no_eliminations" | "storage_error",
+      errorType: "validation" | "no_candidates" | "no_approvals" | "storage_error",
       message: string,
       screen: string,
     ) => {
