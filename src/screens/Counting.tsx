@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import ConfirmModal from '../components/ConfirmModal';
-import ErrorBanner from '../components/ErrorBanner';
-import IndexBadge from '../components/IndexBadge';
-import ScreenLayout from '../components/ScreenLayout';
-import { useBallot } from '../hooks/useBallot';
-import { useErrorBanner } from '../hooks/useErrorBanner';
-import { useAnalytics, ScreenName } from '../analytics';
-import type { Screen } from '../types';
-import { vibrate } from '../utils/haptics';
+import { useState, useEffect, useRef } from "react";
+import ConfirmModal from "../components/ConfirmModal";
+import ErrorBanner from "../components/ErrorBanner";
+import IndexBadge from "../components/IndexBadge";
+import ScreenLayout from "../components/ScreenLayout";
+import { useBallot } from "../hooks/useBallot";
+import { useErrorBanner } from "../hooks/useErrorBanner";
+import { useAnalytics, ScreenName } from "../analytics";
+import type { Screen } from "../types";
+import { vibrate } from "../utils/haptics";
 
 type Props = { navigate: (screen: Screen) => void };
 
@@ -16,7 +16,7 @@ export default function Counting({ navigate }: Props) {
   const [approved, setApproved] = useState<string[]>([]);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [ballotKey, setBallotKey] = useState(0);
-  const [slideDir, setSlideDir] = useState<'left' | 'right'>('left');
+  const [slideDir, setSlideDir] = useState<"left" | "right">("left");
   const { errorMsg, showError } = useErrorBanner();
   const { trackScreenView, trackCounting, trackError, updateActivity } = useAnalytics();
 
@@ -47,7 +47,7 @@ export default function Counting({ navigate }: Props) {
       showError(error);
 
       // Track validation error
-      trackError('no_approvals', error, 'counting');
+      trackError("no_approvals", error, "counting");
       return false;
     }
     return true;
@@ -60,9 +60,14 @@ export default function Counting({ navigate }: Props) {
     const timeSpent = (Date.now() - ballotStartTime.current) / 1000;
 
     // Track ballot completion
-    trackCounting.ballotCounted(state.ballotCount + 1, disapprovedCount, approved.length, timeSpent);
+    trackCounting.ballotCounted(
+      state.ballotCount + 1,
+      disapprovedCount,
+      approved.length,
+      timeSpent,
+    );
 
-    dispatch({ type: 'COUNT_BALLOT', payload: approved });
+    dispatch({ type: "COUNT_BALLOT", payload: approved });
     setApproved([]);
 
     // Reset ballot timer for next ballot
@@ -76,12 +81,12 @@ export default function Counting({ navigate }: Props) {
     const lastApproved = state.ballotLog[state.ballotLog.length - 1];
 
     // Track undo action
-    trackCounting.ballotUndo(state.ballotCount, 'user_initiated');
+    trackCounting.ballotUndo(state.ballotCount, "user_initiated");
     undoCount.current++;
 
-    setSlideDir('right');
+    setSlideDir("right");
     setBallotKey((k) => k + 1);
-    dispatch({ type: 'UNDO_BALLOT' });
+    dispatch({ type: "UNDO_BALLOT" });
     setApproved(lastApproved);
 
     // Reset ballot timer
@@ -92,7 +97,7 @@ export default function Counting({ navigate }: Props) {
     updateActivity();
     vibrate();
     if (!validateDisapproved()) return;
-    setSlideDir('left');
+    setSlideDir("left");
     setBallotKey((k) => k + 1);
     countBallot();
   }
@@ -108,7 +113,7 @@ export default function Counting({ navigate }: Props) {
 
     // Count final ballot if needed
     if (approved.length > 0) {
-      setSlideDir('left');
+      setSlideDir("left");
       setBallotKey((k) => k + 1);
       countBallot();
     }
@@ -124,64 +129,85 @@ export default function Counting({ navigate }: Props) {
       undoCount.current,
     );
 
-    dispatch({ type: 'SAVE_HISTORY' });
-    navigate('report');
+    dispatch({ type: "SAVE_HISTORY" });
+    navigate("report");
   }
 
   return (
     <ScreenLayout>
       {showFinishConfirm && (
         <ConfirmModal
-          message={approved.length === 0 ? `Phiếu bầu số ${state.ballotCount + 1} chưa được kiểm. Tiếp tục kết thúc?` : 'Kết thúc kiểm phiếu?'}
-          description={approved.length === 0 ? 'Phiếu chưa kiểm sẽ không được tính vào kết quả.' : 'Hành động này sẽ lưu kết quả và không thể hoàn tác.'}
-          confirmLabel='Kết thúc'
+          message={
+            approved.length === 0
+              ? `Phiếu bầu số ${state.ballotCount + 1} chưa được kiểm. Tiếp tục kết thúc?`
+              : "Kết thúc kiểm phiếu?"
+          }
+          description={
+            approved.length === 0
+              ? "Phiếu chưa kiểm sẽ không được tính vào kết quả."
+              : "Hành động này sẽ lưu kết quả và không thể hoàn tác."
+          }
+          confirmLabel="Kết thúc"
           onConfirm={handleFinishConfirm}
           onCancel={() => setShowFinishConfirm(false)}
         />
       )}
 
-      <div className='bg-blue-600 text-white p-4 text-xl text-center font-bold'>Phiếu bầu số {state.ballotCount + 1}</div>
+      <div className="bg-blue-600 text-white p-4 text-xl text-center font-bold">
+        Phiếu bầu số {state.ballotCount + 1}
+      </div>
 
-      <div className='text-center text-lg py-2'>
-        Chạm để <b className='text-green-700'>CHỌN</b> ứng viên được bầu
+      <div className="text-center text-lg py-2">
+        Chạm để <b className="text-green-700">CHỌN</b> ứng viên được bầu
       </div>
 
       <ErrorBanner message={errorMsg} />
 
-      <div key={ballotKey} className={`flex-1 overflow-y-auto p-3 space-y-3 ${slideDir === 'left' ? 'animate-slide-from-right' : 'animate-slide-from-left'}`}>
+      <div
+        key={ballotKey}
+        className={`flex-1 overflow-y-auto p-3 space-y-3 ${slideDir === "left" ? "animate-slide-from-right" : "animate-slide-from-left"}`}
+      >
         {state.candidates.map((c, index) => (
           <button
             key={c.id}
             onClick={() => toggle(c.id)}
             className={`w-full h-16 rounded-xl flex items-center justify-between px-4 text-lg font-semibold border active:scale-95 transition-all duration-100
-              ${approved.includes(c.id) ? 'bg-green-100 border-green-400 text-green-800' : ''}`}
+              ${approved.includes(c.id) ? "bg-green-100 border-green-400 text-green-800" : ""}`}
           >
-            <span className='flex items-center gap-3'>
+            <span className="flex items-center gap-3">
               <IndexBadge index={index + 1} />
               {c.name}
             </span>
-            <span className='text-2xl'>{approved.includes(c.id) ? '✔' : ''}</span>
+            <span className="text-2xl">{approved.includes(c.id) ? "✔" : ""}</span>
           </button>
         ))}
       </div>
 
-      <div className='p-3 space-y-3'>
-        <div className='flex gap-3'>
+      <div className="p-3 space-y-3">
+        <div className="flex gap-3">
           {hasPrevious && (
-            <button onClick={previous} className='flex-1 h-14 bg-gray-500 text-white text-md font-bold rounded-xl active:scale-95 active:bg-gray-600 transition-all duration-100'>
+            <button
+              onClick={previous}
+              className="flex-1 h-14 bg-gray-500 text-white text-md font-bold rounded-xl active:scale-95 active:bg-gray-600 transition-all duration-100"
+            >
               ◀ PHIẾU TRƯỚC
             </button>
           )}
-          <button onClick={next} className='flex-1 h-14 bg-green-600 text-white text-md font-bold rounded-xl active:scale-95 active:bg-green-700 transition-all duration-100'>
+          <button
+            onClick={next}
+            className="flex-1 h-14 bg-green-600 text-white text-md font-bold rounded-xl active:scale-95 active:bg-green-700 transition-all duration-100"
+          >
             PHIẾU KẾ TIẾP ▶
           </button>
         </div>
 
-        <button onClick={finish} className='w-full h-14 bg-yellow-500 text-white text-lg font-bold rounded-xl active:scale-95 active:bg-yellow-600 transition-all duration-100'>
+        <button
+          onClick={finish}
+          className="w-full h-14 bg-yellow-500 text-white text-lg font-bold rounded-xl active:scale-95 active:bg-yellow-600 transition-all duration-100"
+        >
           KẾT THÚC KIỂM PHIẾU
         </button>
       </div>
     </ScreenLayout>
   );
 }
-
